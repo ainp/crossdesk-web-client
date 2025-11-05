@@ -10,38 +10,47 @@
     <div class="container">
       <h1>CrossDesk Web Client</h1>
 
-      <div class="card">
-        <h2>连接设置</h2>
-        <div class="option">
-          <label for="transmission-id">传输ID：</label>
-          <input id="transmission-id" type="text" value="475319798" />
+      <!-- Connection settings + status -->
+      <div class="top-card">
+        <div class="connection-card">
+          <h2>连接设置</h2>
+          <div class="option">
+            <label for="transmission-id">传输ID：</label>
+            <input id="transmission-id" type="text" value="475319798" />
+          </div>
+          <div class="option">
+            <label for="transmission-pwd">密码：</label>
+            <input id="transmission-pwd" type="password" value="111111" />
+          </div>
+          <div class="actions">
+            <button id="connect" onclick="connect()" disabled>连接</button>
+            <button
+              id="disconnect"
+              style="display: none"
+              onclick="disconnect()"
+            >
+              断开连接
+            </button>
+          </div>
         </div>
-        <div class="option">
-          <label for="transmission-pwd">密码：</label>
-          <input id="transmission-pwd" type="password" value="111111" />
-        </div>
-        <div class="actions">
-          <button id="connect" onclick="connect()" disabled>连接</button>
-          <button id="disconnect" style="display: none" onclick="disconnect()">
-            断开连接
-          </button>
+
+        <div class="status-card">
+          <h2>状态</h2>
+          <div class="status-item">
+            ICE 连接状态: <span id="ice-connection-state"></span>
+          </div>
+          <div class="status-item">
+            信令状态: <span id="signaling-state"></span>
+          </div>
+          <div class="status-item">
+            数据通道: <span id="datachannel-state"></span>
+          </div>
         </div>
       </div>
 
-      <div class="states">
-        <div class="state-item">
-          <p>ICE 连接状态: <span id="ice-connection-state"></span></p>
-        </div>
-        <div class="state-item">
-          <p>ICE 收集状态: <span id="ice-gathering-state"></span></p>
-        </div>
-        <div class="state-item">
-          <p>信令状态: <span id="signaling-state"></span></p>
-        </div>
-      </div>
-
+      <!-- Video display -->
       <div id="media" style="display: none">
-        <h2>远程画面</h2>
+        <h2>远程画面 <span id="track-id" class="track-id"></span></h2>
         <video
           id="video"
           playsinline
@@ -50,11 +59,6 @@
           x5-video-player-fullscreen="true"
           muted
         ></video>
-      </div>
-
-      <div class="card">
-        <h2>数据通道</h2>
-        <pre id="data-channel"></pre>
       </div>
     </div>
 

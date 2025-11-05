@@ -1,12 +1,12 @@
 :root {
   --primary-color: #2196f3;
+  --danger-color: #f44336;
   --background-color: #f5f5f5;
   --border-radius: 8px;
 }
 
 body {
   margin: 0;
-  padding: 20px;
   font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif;
   background-color: var(--background-color);
   color: #333;
@@ -16,55 +16,70 @@ body {
   max-width: 1280px;
   margin: 0 auto;
   padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 h1 {
-  color: var(--primary-color);
   text-align: center;
-  margin-bottom: 30px;
+  color: var(--primary-color);
+  margin-bottom: 10px;
 }
 
-h2 {
-  color: #444;
-  margin-top: 30px;
+/* Connection settings + status card */
+.top-card {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
 }
 
-.card {
+.connection-card, .status-card {
   background: white;
   border-radius: var(--border-radius);
   padding: 20px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  margin-bottom: 20px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  flex: 1 1 300px;
+}
+
+.connection-card h2,
+.status-card h2 {
+  margin-top: 0;
+  color: #444;
 }
 
 .option {
-  margin-bottom: 15px;
   display: flex;
   align-items: center;
+  margin-bottom: 15px;
 }
 
 .option label {
-  min-width: 120px;
+  width: 120px;
   color: #666;
 }
 
-input[type="text"],
-input[type="password"] {
+.option input {
+  flex: 1;
   padding: 8px 12px;
   border: 1px solid #ddd;
   border-radius: 4px;
-  width: 200px;
   font-size: 14px;
 }
 
+.actions {
+  display: flex;
+  gap: 10px;
+}
+
 button {
-  background-color: var(--primary-color);
-  color: white;
-  border: none;
   padding: 10px 20px;
+  border: none;
   border-radius: 4px;
   cursor: pointer;
   font-weight: 500;
+  color: white;
+  background-color: var(--primary-color);
   transition: background-color 0.2s;
 }
 
@@ -78,31 +93,39 @@ button:disabled {
 }
 
 #disconnect {
-  background-color: #f44336;
+  background-color: var(--danger-color);
 }
 
 #disconnect:hover {
   background-color: #d32f2f;
 }
 
-.states {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 15px;
+/* Status display */
+.status-item {
+  padding: 10px;
+  background: #f8f9fa;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  margin-bottom: 10px;
+  transition: background-color 0.5s;
 }
 
-.state-item {
-  background: white;
-  padding: 15px;
-  border-radius: var(--border-radius);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+/* Status change animation */
+.status-update {
+  animation: flash 0.5s;
 }
 
+@keyframes flash {
+  0% { background-color: #ffeb3b; }
+  50% { background-color: #f8f9fa; }
+  100% { background-color: #ffeb3b; }
+}
+
+/* Video display */
 #media {
   background: #222;
   border-radius: var(--border-radius);
   padding: 20px;
-  margin-top: 20px;
 }
 
 video {
@@ -112,9 +135,17 @@ video {
 
 #data-channel {
   background: #f8f9fa;
-  border-radius: var(--border-radius);
+  border: 1px solid #ddd;
+  border-radius: 4px;
   padding: 15px;
   font-family: monospace;
   height: 200px;
-  border: 1px solid #ddd;
+  overflow-y: auto;
+  white-space: pre-wrap;
+}
+
+@media (max-width: 768px) {
+  .top-card {
+    flex-direction: column;
+  }
 }
