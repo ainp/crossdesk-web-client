@@ -1,3 +1,4 @@
+<!-- index.html -->
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -6,7 +7,6 @@
     <link rel="stylesheet" href="styles.css" />
     <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
   </head>
-
   <body>
     <div class="container">
       <h1>CrossDesk Web Client</h1>
@@ -14,37 +14,37 @@
       <!-- Connection settings + status -->
       <div class="top-card">
         <div class="connection-card">
-          <h2>连接设置</h2>
+          <h2>Connection Settings</h2>
           <div class="option">
-            <label for="transmission-id">传输ID：</label>
+            <label for="transmission-id">Transmission ID:</label>
             <input id="transmission-id" type="text" value="931631602" />
           </div>
           <div class="option">
-            <label for="transmission-pwd">密码：</label>
+            <label for="transmission-pwd">Password:</label>
             <input id="transmission-pwd" type="password" value="111111" />
           </div>
           <div class="actions">
-            <button id="connect" onclick="connect()" disabled>连接</button>
+            <button id="connect" onclick="connect()" disabled>Connect</button>
             <button
               id="disconnect"
               style="display: none"
               onclick="disconnect()"
             >
-              断开连接
+              Disconnect
             </button>
           </div>
         </div>
 
         <div class="status-card">
-          <h2>状态</h2>
+          <h2>Status</h2>
           <div class="status-item">
-            ICE 连接状态: <span id="ice-connection-state"></span>
+            ICE Connection State: <span id="ice-connection-state"></span>
           </div>
           <div class="status-item">
-            信令状态: <span id="signaling-state"></span>
+            Signaling State: <span id="signaling-state"></span>
           </div>
           <div class="status-item">
-            数据通道: <span id="datachannel-state"></span>
+            Data Channel: <span id="datachannel-state"></span>
           </div>
         </div>
       </div>
@@ -54,32 +54,50 @@
         <div class="option" style="margin-bottom: 12px">
           <label for="display-id">显示器 ID: </label>
           <select id="display-id" style="width: 160px" disabled>
-            <option value="" selected>等待轨道ID...</option>
+            <option value="" selected>Waiting for track ID...</option>
           </select>
           <button
             id="set-display"
             disabled
             onclick="CrossDeskControl.setDisplayId()"
           >
-            设置
+            Set
           </button>
+          <!-- Add fullscreen control buttons -->
+          <button id="fullscreen-btn" class="control-btn">Maximize</button>
+          <button id="real-fullscreen-btn" class="control-btn">Fullscreen</button>
         </div>
-        <video
-          id="video"
-          playsinline
-          webkit-playsinline
-          x5-video-player-type="h5"
-          x5-video-player-fullscreen="true"
-          muted
-        ></video>
+
+        <!-- Video container, including draggable virtual mouse -->
+        <div id="video-container" style="position: relative">
+          <video
+            id="video"
+            playsinline
+            webkit-playsinline
+            x5-video-player-type="h5"
+            x5-video-player-fullscreen="true"
+            muted
+            style="width: 100%"
+          ></video>
+
+          <!-- Draggable virtual mouse -->
+          <div id="virtual-mouse">
+            <button id="virtual-left-btn" class="virtual-mouse-btn">
+              Left
+            </button>
+            <button id="virtual-right-btn" class="virtual-mouse-btn">
+              Right
+            </button>
+          </div>
+        </div>
       </div>
 
       <!-- Data Channel UI -->
       <div class="top-card">
         <div class="connection-card">
-          <h2>数据通道</h2>
+          <h2>Data Channel</h2>
           <div class="option">
-            <label for="audio-capture">采集音频：</label>
+            <label for="audio-capture">Capture Audio:</label>
             <input id="audio-capture" type="checkbox" disabled />
           </div>
 
@@ -97,7 +115,7 @@
             <input
               id="dc-input"
               type="text"
-              placeholder="输入要发送的消息"
+              placeholder="Enter message to send"
               style="flex: 1; padding: 8px"
             />
             <button
@@ -105,7 +123,7 @@
               onclick="CrossDeskControl.sendDataChannelMessage()"
               disabled
             >
-              发送
+              Send
             </button>
           </div>
         </div>

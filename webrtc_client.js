@@ -77,7 +77,7 @@
     pc.ontrack = (evt) => {
       const video = document.getElementById('video');
       if (evt.track.kind !== 'video') return;
-      // 记录 track id，并回填到显示器ID输入框
+      // Record track ID and fill it back to the display ID input field
       window.CROSSDESK_TRACK_ID = evt.track.id || '';
       const displayIdInput = document.getElementById('display-id');
       if (displayIdInput) {
@@ -166,7 +166,7 @@
     leaveTransmission();
     if (pc) {
       try {
-        // 关闭本地发送轨
+        // Close local sending tracks
         pc.getSenders().forEach((sender) => { const track = sender.track; if (track !== null) { sender.track.stop(); } });
       } catch (e) { }
       pc.close();
@@ -178,7 +178,7 @@
     if (window.CrossDeskControl && window.CrossDeskControl.onDataChannelClose) { window.CrossDeskControl.onDataChannelClose(); }
   }
 
-  // 暴露按钮
+  // Expose connection control functions
   window.connect = connect;
   window.disconnect = disconnect;
 })();

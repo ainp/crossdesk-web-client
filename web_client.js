@@ -5,10 +5,10 @@ const iceConnectionLog = document.getElementById('ice-connection-state'),
   dcInput = document.getElementById('dc-input'),
   dcSendBtn = document.getElementById('dc-send');
 
-// 新增：音频采集与显示器控件
+// New: Audio capture and display controls
 const audioCaptureChk = document.getElementById('audio-capture');
 const displayIdInput = document.getElementById('display-id');
-// 提供按钮 onClick 使用
+// Provide button onClick usage
 function setDisplayId() {
   if (!displayIdInput) return;
   const id = parseInt(displayIdInput.value || '0', 10) || 0;
@@ -40,10 +40,10 @@ const clientProperties = {
 
 let lastMouseEvent = { button: { x: 0, y: 0 } };
 
-// 新增：用于计算移动增量（pointer/touch）
+// New: Used to calculate movement increments (pointer/touch)
 let lastPointerPos = null;
 
-// 新增：Pointer 状态与提示
+// New: Pointer state and tooltips
 let isPointerLocked = false;
 let videoRect = null;
 let normalizedPos = { x: 0.5, y: 0.5 };
@@ -104,7 +104,7 @@ function setupMouseListeners() {
   const video = document.getElementById('video');
   if (!video) return;
 
-  // 阻止浏览器默认触摸行为（比如滚动/缩放）
+  // Prevent default browser touch behavior (such as scrolling/zooming)
   try { video.style.touchAction = 'none'; } catch (e) { }
 
   // pointer lock state change
@@ -119,33 +119,30 @@ function setupMouseListeners() {
       videoRect = video.getBoundingClientRect();
     } else {
       videoRect = null;
-      // 退出锁定时在 UI 上显示提示
-      showPointerLockToast('已退出鼠标锁定，按 Esc 或点击视频重新锁定（释放可按 Ctrl+Esc）', 3000);
+      // Show toast message when exiting pointer lock
+      showPointerLockToast('Exited mouse lock, press Esc or click video to re-lock (release with Ctrl+Esc)', 3000);
     }
   });
 
   document.addEventListener('pointerlockerror', () => {
     console.warn('pointer lock error');
-    showPointerLockToast('鼠标锁定失败', 2500);
+    showPointerLockToast('Mouse lock failed', 2500);
   });
 
-  // Ctrl+Esc 退出 pointer lock
+  // Ctrl+Esc to exit pointer lock
   document.addEventListener('keydown', (e) => {
     if (e.ctrlKey && e.key === 'Escape') {
       if (document.exitPointerLock) document.exitPointerLock();
     }
   });
 
-  // --- Pointer Events（优先） ---
-  // pointerdown 在 video 上触发，发起 mousedown 并请求 pointer lock
+  // --- Pointer Events ---
+  // pointerdown on video triggers mousedown and requests pointer lock
   video.addEventListener('pointerdown', (e) => {
     if (e.button < 0) return;
     e.preventDefault();
-    // 记录位置用于计算 movementX/Y
     lastPointerPos = { x: e.clientX, y: e.clientY };
-    // 尝试 capture
     try { video.setPointerCapture && video.setPointerCapture(e.pointerId); } catch (err) { }
-    // 映射为 mousedown
     sendMouseEvent({
       type: 'mousedown',
       clientX: e.clientX,
@@ -154,9 +151,8 @@ function setupMouseListeners() {
     });
   }, { passive: false });
 
-  // pointermove 在 document 上处理，兼容鼠标/触控/手写笔
+  // pointermove handled at document level, compatible with mouse/touch/stylus
   document.addEventListener('pointermove', (e) => {
-    // 计算 movementX/Y（pointer events 不一定提供 movementX）
     const movementX = (lastPointerPos ? (e.clientX - lastPointerPos.x) : 0);
     const movementY = (lastPointerPos ? (e.clientY - lastPointerPos.y) : 0);
     lastPointerPos = { x: e.clientX, y: e.clientY };
@@ -170,7 +166,7 @@ function setupMouseListeners() {
     });
   }, { passive: false });
 
-  // pointerup / pointercancel 映射为 mouseup
+  // pointerup / pointercancel mapped to mouseup
   document.addEventListener('pointerup', (e) => {
     try { video.releasePointerCapture && video.releasePointerCapture(e.pointerId); } catch (err) { }
     sendMouseEvent({
@@ -183,8 +179,8 @@ function setupMouseListeners() {
   });
   document.addEventListener('pointercancel', () => { lastPointerPos = null; });
 
-  // --- 兼容：touch 事件回退（如果指针事件不被支持） ---
-  // 仅在不支持 pointer event 的环境下，浏览器也可能同时触发 touch
+  // --- Fallback: touch events (if pointer events are not supported) ---
+  // In environments where pointer events are not supported, browsers may also trigger touch events
   if (!window.PointerEvent) {
     video.addEventListener('touchstart', (e) => {
       if (!e.touches || e.touches.length === 0) return;
@@ -205,7 +201,6 @@ function setupMouseListeners() {
     }, { passive: false });
 
     document.addEventListener('touchend', (e) => {
-      // 使用 changedTouches 获取结束位置
       const t = (e.changedTouches && e.changedTouches[0]) || null;
       if (t) {
         sendMouseEvent({ type: 'mouseup', clientX: t.clientX, clientY: t.clientY, button: 0 });
@@ -216,14 +211,14 @@ function setupMouseListeners() {
     }, { passive: false });
   }
 
-  // 保留原来的 wheel 行为（触控板双指会产生 wheel）
+  // Keep original wheel behavior (trackpad two-finger swipe generates wheel events)
   document.addEventListener('wheel', sendMouseEvent, { passive: true });
 }
 
 function clamp01(v) { return Math.max(0, Math.min(1, v)); }
 
 function sendRemoteActionAt(normX, normY, flag, s = 0) {
-  // 兼容旧调用：flag 可为字符串名称或数字
+  // Compatibility with old calls: flag can be string name or number
   const numericFlag = (typeof flag === 'string') ? (MouseFlag[flag] ?? MouseFlag.move) : (flag | 0);
   const remote_action = {
     type: ControlType.mouse,
@@ -243,7 +238,6 @@ function sendRemoteActionAt(normX, normY, flag, s = 0) {
   }
 }
 
-// 键盘事件：发送 { type:1, keyboard:{ key_value, flag } }
 function sendKeyboardAction(keyValue, isDown) {
   const remote_action = {
     type: ControlType.keyboard,
@@ -261,7 +255,6 @@ function sendKeyboardAction(keyValue, isDown) {
   }
 }
 
-// 音频采集：发送 { type:2, audio_capture: boolean }
 function sendAudioCapture(enabled) {
   const remote_action = {
     type: ControlType.audio_capture,
@@ -276,7 +269,6 @@ function sendAudioCapture(enabled) {
   }
 }
 
-// 显示器ID：发送 { type:4, display_id: number }
 function sendDisplayId(id) {
   const remote_action = {
     type: ControlType.display_id,
@@ -292,9 +284,8 @@ function sendDisplayId(id) {
 }
 
 function setupKeyboardListeners() {
-  // 使用 keydown/keyup，发送数值 keyCode（如需与平台键值一致，可在后端映射）
+  // Use keydown/keyup, send numerical keyCode (can be mapped to platform key values on backend if needed)
   const onKeyDown = (e) => {
-    // 允许浏览器保留基础快捷键，如刷新等；这里不阻止默认
     const keyValue = (typeof e.keyCode === 'number') ? e.keyCode : 0;
     sendKeyboardAction(keyValue, true);
   };
@@ -474,7 +465,6 @@ function createPeerConnection() {
 
       dc.onopen = () => {
         console.log('Data channel opened');
-        // 显示状态并启用发送 UI
         if (dataChannelStateSpan) dataChannelStateSpan.textContent = 'open';
         if (dataChannelLog) {
           dataChannelLog.textContent += '[datachannel open]\n';
@@ -484,7 +474,6 @@ function createPeerConnection() {
         setupMouseListeners();
         setupKeyboardListeners();
 
-        // 启用音频与显示器控件
         if (audioCaptureChk) {
           audioCaptureChk.disabled = false;
           audioCaptureChk.onchange = (e) => sendAudioCapture(!!e.target.checked);
@@ -677,15 +666,15 @@ function disconnect() {
 }
 
 
-// 通过 data channel 发送用户输入的信息
+// Send user input messages through data channel
 function sendDataChannelMessage() {
   const msg = (dcInput && dcInput.value) ? dcInput.value.trim() : '';
   if (!msg) return;
   if (!dc || dc.readyState !== 'open') {
-    alert('数据通道未打开，无法发送消息。');
+    alert('Data channel is not open, cannot send message.');
     return;
   }
-  // 仅允许发送符合 RemoteAction 协议的 JSON，避免后端解析错误
+  // Only allow sending JSON that conforms to RemoteAction protocol to avoid backend parsing errors
   try {
     const obj = JSON.parse(msg);
     const isObject = obj && typeof obj === 'object' && !Array.isArray(obj);
@@ -694,7 +683,7 @@ function sendDataChannelMessage() {
       ('mouse' in obj) || ('keyboard' in obj) || ('audio_capture' in obj) || ('display_id' in obj)
     );
     if (!hasNumericType || !hasValidPayload) {
-      alert('仅支持发送 RemoteAction 协议 JSON（包含数值 type 以及 mouse/keyboard/audio_capture/display_id 之一）');
+      alert('Only RemoteAction protocol JSON is supported (must have numeric type and one of: mouse/keyboard/audio_capture/display_id)');
       return;
     }
     dc.send(JSON.stringify(obj));
@@ -712,11 +701,11 @@ function sendMouseEvent(event) {
   const video = document.getElementById('video');
   if (!video) return;
 
-  // 如果没有 videoRect（或大小变化），重新获取
+  // If no videoRect (or size changed), get it again
   if (!videoRect) videoRect = video.getBoundingClientRect();
 
   if (event.type === 'mousedown') {
-    // 仅在用户点击 video 区域时进入 pointer lock
+    // Only enter pointer lock when user clicks within the video area
     if (event.clientX >= videoRect.left && event.clientX <= videoRect.right &&
       event.clientY >= videoRect.top && event.clientY <= videoRect.bottom) {
       // 初始化 normalizedPos 为点击位置
@@ -737,7 +726,7 @@ function sendMouseEvent(event) {
   }
 
   if (event.type === 'mouseup') {
-    // 在 pointer lock 时发送相对位置的 up；否则仅在 video 区域内发送
+    // Send up event at relative position when in pointer lock; otherwise only send within video area
     if (isPointerLocked) {
       const flag = event.button === 0 ? 'left_up' : (event.button === 2 ? 'right_up' : 'middle_up');
       sendRemoteActionAt(normalizedPos.x, normalizedPos.y, flag);
@@ -753,8 +742,8 @@ function sendMouseEvent(event) {
 
   if (event.type === 'mousemove') {
     if (isPointerLocked) {
-      // movementX/movementY 提供像素级增量
-      videoRect = video.getBoundingClientRect(); // 保持最新尺寸
+      // movementX/movementY provides pixel-level increments
+      videoRect = video.getBoundingClientRect(); // Keep latest dimensions
       normalizedPos.x = clamp01(normalizedPos.x + (event.movementX / videoRect.width));
       normalizedPos.y = clamp01(normalizedPos.y + (event.movementY / videoRect.height));
       sendRemoteActionAt(normalizedPos.x, normalizedPos.y, 'move');
@@ -771,7 +760,7 @@ function sendMouseEvent(event) {
   }
 
   if (event.type === 'wheel') {
-    // 滚轮以当前位置（pointer lock 时为 normalizedPos）发送
+    // Send scroll events from current position (normalizedPos when in pointer lock)
     let x, y;
     if (isPointerLocked) {
       x = normalizedPos.x; y = normalizedPos.y;
@@ -788,55 +777,4 @@ function sendMouseEvent(event) {
     sendRemoteActionAt(x, y, flag, event.deltaY || event.deltaX);
     return;
   }
-}
-
-function setupMouseListeners() {
-  const video = document.getElementById('video');
-  if (!video) return;
-
-  // pointer lock state change
-  document.addEventListener('pointerlockchange', () => {
-    isPointerLocked = (document.pointerLockElement === video);
-    if (dataChannelLog) {
-      dataChannelLog.textContent += `[pointerlock ${isPointerLocked ? 'entered' : 'exited'}]\n`;
-      dataChannelLog.scrollTop = dataChannelLog.scrollHeight;
-    }
-    // update rect when entering/exiting
-    if (isPointerLocked) {
-      videoRect = video.getBoundingClientRect();
-    } else {
-      videoRect = null;
-      // 退出锁定时在 UI 上显示提示
-      showPointerLockToast('已退出鼠标锁定，按 Esc 或点击视频重新锁定（释放可按 Ctrl+Esc）', 3000);
-    }
-  });
-
-  document.addEventListener('pointerlockerror', () => {
-    console.warn('pointer lock error');
-    showPointerLockToast('鼠标锁定失败', 2500);
-  });
-
-  // Ctrl+Esc 退出 pointer lock
-  document.addEventListener('keydown', (e) => {
-    if (e.ctrlKey && e.key === 'Escape') {
-      if (document.exitPointerLock) document.exitPointerLock();
-    }
-  });
-
-  // Attach event listeners for mouse events
-  // mousedown on video triggers pointer lock request and sends down event
-  video.addEventListener('mousedown', (e) => {
-    // Only respond to left/middle/right buttons
-    if (e.button < 0) return;
-    // prevent default to avoid selection
-    e.preventDefault();
-    // update rect and call sendMouseEvent which will request pointer lock
-    videoRect = video.getBoundingClientRect();
-    sendMouseEvent(e);
-  });
-
-  // document-level listeners for move/up/wheel (works with pointer lock)
-  document.addEventListener('mousemove', sendMouseEvent);
-  document.addEventListener('mouseup', sendMouseEvent);
-  document.addEventListener('wheel', sendMouseEvent, { passive: true });
 }
